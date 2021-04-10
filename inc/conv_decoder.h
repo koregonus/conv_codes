@@ -8,62 +8,6 @@
 
 #define DEBUG_133_171
 
-#ifdef DEBUG_1_3
-
-#define STATES 2
-
-#define TOTAL_PATHS 4
-
-#define PATH_LENGTH 2
-
-#define STATE_LENGTH 1
-
-#define STATE_SWITCH 1U
-
-#define TRELLIS_LENGTH 3
-
-#endif
-
-
-
-#ifdef DEBUG_5_7
-
-#define STATES 4
-
-#define TOTAL_PATHS 8
-
-#define PATH_LENGTH 3
-
-#define STATE_SWITCH 1U
-
-#define STATE_LENGTH 0x3U
-
-#define TRELLIS_LENGTH 5
-
-#endif
-
-
-#ifdef DEBUG_15_17
-
-#define STATES 8
-
-#define TOTAL_PATHS 16
-
-#define PATH_LENGTH 4
-
-#define STATE_SWITCH 2U
-
-#define STATE_LENGTH 0x7U
-
-#define TRELLIS_LENGTH 6
-
-#define SWITCH_ON 1
-
-#define SWITCH_OFF 0
-
-
-#endif
-
 
 #ifdef DEBUG_133_171
 
