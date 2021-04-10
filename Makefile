@@ -1,25 +1,3 @@
-# CC=gcc
-# CFLAGS=-c   -std=c11
-# LDFLAGS=
-# SOURCES=test/test_main.c src/conv_133_171_encoder.c fs_io.c fs_cmd.c
-# OBJECTS=$(SOURCES:.c=.o)
-# EXECUTABLE=filesystem
-
-
-# all: $(SOURCES) $(EXECUTABLE)
-
-# $(EXECUTABLE): $(OBJECTS)
-# 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
-
-
-# .c.o:
-# 	$(CC) $(CFLAGS) $< -o $@
-
-# clear:
-# 	rm -rf *.o filesystem
-
-
-
 .PHONY: all clean
 
 all: conv_codes Makefile
