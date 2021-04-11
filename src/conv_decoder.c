@@ -1,14 +1,8 @@
 #include <stdio.h>
 
-#include "conv_1_3_encoder.h"
-
-#include "conv_5_7_encoder.h"
-
-#include "conv_15_17_encoder.h"
-
 #include "conv_133_171_encoder.h"
 
- #include "conv_decoder.h"
+#include "conv_decoder.h"
 
 
 //Разложение байта на 2-битовые сочетания(определяется скоростью кода 1/2, где n=2)
@@ -43,45 +37,6 @@ void update_branch_node(struct yarus* trellis, uint8_t cur_yarus, uint8_t cur_no
 {
 	uint8_t buffer_register = cur_node;
 
-	#ifdef DEBUG_1_3
-	uint8_t local_code = encode_bit(0,&buffer_register);
-	trellis[cur_yarus].yar_nodes[cur_node]->child_edges[0]->ham_weigth=hamming_weigth(local_code,codeword);
-	
-	buffer_register = cur_node;
-	local_code = (1<<1)|encode_bit(1,&buffer_register);
-	trellis[cur_yarus].yar_nodes[cur_node]->child_edges[1]->ham_weigth=hamming_weigth(local_code,codeword);
-	#endif
-
-
-	#ifdef DEBUG_5_7
-
-	uint8_t local_code = (encode_bit_5(0,&buffer_register)<<1U);
-	local_code=local_code|(encode_bit_7(&buffer_register));
-	trellis[cur_yarus].yar_nodes[cur_node]->child_edges[0]->ham_weigth=hamming_weigth(local_code,codeword);
-
-	buffer_register = cur_node;
-	local_code = ((encode_bit_5(1<<2U,&buffer_register))<<1U);
-	local_code = local_code|(encode_bit_7(&buffer_register));
-	trellis[cur_yarus].yar_nodes[cur_node]->child_edges[1]->ham_weigth=hamming_weigth(local_code,codeword);
-
-
-	#endif
-
-	#ifdef DEBUG_15_17
-
-	uint8_t local_code = (encode_bit_15(0,&buffer_register,1)<<1U);
-	local_code=local_code|(encode_bit_17(&buffer_register));
-	trellis[cur_yarus].yar_nodes[cur_node]->child_edges[0]->ham_weigth=hamming_weigth(local_code,codeword);
-
-	buffer_register = cur_node;
-	local_code = ((encode_bit_15(1<<3U,&buffer_register,1))<<1U);
-	local_code = local_code|(encode_bit_17(&buffer_register));
-	trellis[cur_yarus].yar_nodes[cur_node]->child_edges[1]->ham_weigth=hamming_weigth(local_code,codeword);
-
-
-	#endif
-
-
 	#ifdef DEBUG_133_171
 
 	uint8_t local_code = (encode_bit_133(0,&buffer_register,1)<<1U);
@@ -92,17 +47,6 @@ void update_branch_node(struct yarus* trellis, uint8_t cur_yarus, uint8_t cur_no
 	local_code = ((encode_bit_133(1<<6U,&buffer_register,1))<<1U);
 	local_code = local_code|(encode_bit_171(&buffer_register,1));
 	trellis[cur_yarus].yar_nodes[cur_node]->child_edges[1]->ham_weigth=hamming_weigth(local_code,codeword);
-
-
-
-
-	// uint8_t local_code = (encode_bit_133(0,&buffer_register)<<1U)|(encode_bit_171(&buffer_register));
-	// trellis[cur_yarus].yar_nodes[cur_node]->child_edges[0]->ham_weigth=hamming_weigth(local_code,codeword);
-
-	// buffer_register = cur_node;
-	// local_code = (encode_bit_133(1,&buffer_register)<<1U)|(encode_bit_171(&buffer_register));
-	// trellis[cur_yarus].yar_nodes[cur_node]->child_edges[0]->ham_weigth=hamming_weigth(local_code,codeword);
-
 
 	#endif
 
@@ -137,22 +81,17 @@ void init_trellis(struct yarus* trellis, struct node (* local_node_array)[STATES
 	for(uint8_t i=0; i<TRELLIS_LENGTH; i++ )  //Кол-во ярусов == ДКО
 	{
 
-		// printf("NEW YARUS INITIALIZATION\n");
-
 		for(uint8_t k=0; k<STATES; k++)  // Кол-во состояний регистра
 		{
 			trellis[i].yar_nodes[k]=&local_node_array[i][k];
 
 			uint8_t buffer_state=k;
-
-			// printf("CURRENT_STATE:%d\n",k);
 			
 			if(i<TRELLIS_LENGTH-1)
 			{
 					//Нулевой путь
 					trellis[i].yar_nodes[k]->child_edges[0]=&local_edge_array[i][2*k];
 					buffer_state = (buffer_state>>1U)&STATE_LENGTH;
-					// printf("ZERO_STATE:%d\n", buffer_state );
 					trellis[i].yar_nodes[k]->child_edges[0]->next=&local_node_array[i+1][buffer_state];
 
 					//Единичный путь
@@ -174,15 +113,11 @@ void init_trellis(struct yarus* trellis, struct node (* local_node_array)[STATES
 					buffer_state = (buffer_state>>1U)&STATE_LENGTH;
 					trellis[i].yar_nodes[k]->child_edges[0]->next=&local_node_array[0][buffer_state];
 
-					// printf("ZERO_STATE:%d\n", buffer_state );
-
 					//Единичный путь
 					trellis[i].yar_nodes[k]->child_edges[1]=&local_edge_array[i][2*k+1];
 					buffer_state=k;
 					buffer_state=((buffer_state>>1U)|(1U<<STATE_SWITCH))&STATE_LENGTH;// TODO:УЗКОЕ МЕСТО!!! нужен макрос для порядка второго сдвига
 					trellis[i].yar_nodes[k]->child_edges[1]->next=&local_node_array[0][buffer_state];
-
-					// printf("ONE_STATE:%d\n", buffer_state );
 			}
 		}
 	}
@@ -272,8 +207,7 @@ void decode_message(uint8_t* input, uint8_t input_length, uint8_t* output, struc
 		current_update_start++;
 	}
 
-
-	for(uint8_t j=PATH_LENGTH-1; j<input_length*4; j++)//TODO: ипсравить ограничение итератора! upd:учесть хвост!
+	for(uint8_t j=PATH_LENGTH-1; j<input_length*4; j++)
 	{
 
 		if(current_update_start>=TRELLIS_LENGTH)
@@ -288,7 +222,7 @@ void decode_message(uint8_t* input, uint8_t input_length, uint8_t* output, struc
 
 		last_decoded_bit=index_of_min_path&1;
 
-		current_state = (current_state>>1)|(last_decoded_bit<<STATE_SWITCH); //TODO: тут STATESWITCH
+		current_state = (current_state>>1)|(last_decoded_bit<<STATE_SWITCH);
 
 		output[decode_data_it/8]|=(last_decoded_bit<<shift_data);
 
